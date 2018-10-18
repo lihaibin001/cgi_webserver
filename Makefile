@@ -7,10 +7,12 @@ DEBUG = -g -O2
 CFLAGS = $(DEBUG) -Wall -c
 
 .PHONY:all
-all:login index cgiserver
+all:login logout  index cgiserver
 
 login:
 	$(CC) -o login.cgi login.c $(SRCS) $(LIB) $(INCLUDE) $(LIBS)
+logout:
+	$(CC) -o logout.cgi logout.c $(SRCS) $(LIB) $(INCLUDE) $(LIBS)
 index:
 	$(CC) -o index.cgi index.c $(SRCS) $(LIB) $(INCLUDE) $(LIBS)
 cgiserver:

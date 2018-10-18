@@ -9,7 +9,7 @@ int cgiMain(void) {
     char name[32] = "";
     char password[32] = "";
     cgiHeaderContentType("text/html");
-    fprintf(cgiOut, "<HTML><meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"><HEAD>\n");
+    fprintf(cgiOut, "<HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"><HEAD>\n");
     fprintf(cgiOut, "<BODY>\n");
     cgiFormStringNoNewlines("username", name, 32);
     if(strlen(name) == 0)

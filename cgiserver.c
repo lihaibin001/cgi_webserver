@@ -138,6 +138,7 @@ void cgi_server(void)
                 g_certify_status = false;
                 tx_msg.data[0] = 1;
                 WEB_SRV_DEBUG("logout\n");
+                break;
             default:
                 break;
         }
@@ -145,7 +146,8 @@ void cgi_server(void)
         {
             perror("[WEB SRV]");
         }
-        msgctl(rx_msg_id, IPC_RMID, 0); 
+        WEB_SRV_DEBUG("Send event %ld\n",tx_msg.type);
+        //msgctl(rx_msg_id, IPC_RMID, 0); 
     }
 }
 
@@ -161,6 +163,12 @@ bool cgi_req_user_certified(char name[], char password[])
     {
         return false;
     }
+    rx_msg_id = msgget((key_t)1001, 0666 | IPC_CREAT);
+    if(rx_msg_id == -1)
+    {
+        msgctl(tx_msg_id, IPC_RMID, 0); 
+        return false;
+    }
     memset(&tx_msg, 0, sizeof(msg_type_t));
     tx_msg.type = MSG_TYPE_USER_CERTIFY;
     memcpy(((user_info_t *)tx_msg.data)->name, name, 32);
@@ -174,21 +182,16 @@ bool cgi_req_user_certified(char name[], char password[])
         }
     }
     memset(&rx_msg, 0, sizeof(msg_type_t));
-    rx_msg_id = msgget((key_t)1001, 0666 | IPC_CREAT);
-    if(rx_msg_id == -1)
-    {
-        msgctl(tx_msg_id, IPC_RMID, 0); 
-        return false;
-    }
-    try_cnt = 3;
-    while(msgrcv(rx_msg_id, (void *)&rx_msg, MSG_DATA_LEN, 0, 0) <= (size_t)0)
+    try_cnt = 3; 
+    //msgrcv(rx_msg_id, (void *)&rx_msg, MSG_DATA_LEN, 0, 0);
+    while(msgrcv(rx_msg_id, (void *)&rx_msg, MSG_DATA_LEN, 0, 0) == -1)
     {
         if(try_cnt-- == 0)
         {
             return false;
         }
     }
-    msgctl(rx_msg_id, IPC_RMID, 0);
+    //msgctl(rx_msg_id, IPC_RMID, 0);
     //msgctl(tx_msg_id, IPC_RMID, 0); 
     if(rx_msg.data[0] == 1)
     {
@@ -268,10 +271,7 @@ bool cgi_is_certified(void)
             break;
         }
     }
-    if (msgctl(rx_msg_id, IPC_RMID, 0) == -1) 
-    {
-        //perror("[WEB SRV]");
-    } 
+    msgctl(rx_msg_id, IPC_RMID, 0); 
     if(rx_msg.data[0] == 1)
     {
         return true;

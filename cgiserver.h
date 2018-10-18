@@ -18,5 +18,6 @@ bool cgi_req_user_certified(char name[], char password[]);
 void cgi_server(void);
 cgi_status_t cgi_get_status(void);
 bool cgi_is_certified(void);
+bool cgi_logout(void);
 
 #endif //__CGISERVER_H__
