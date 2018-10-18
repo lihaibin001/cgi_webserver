@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "cgiserver.h"
+#include "List.h"
+#include "CommonDefine.h"
 
 #define CGI_SRV_DEBUG_ENABLE 1
 
@@ -36,20 +38,69 @@ typedef struct
 {
     char name[32];
     char password[32];
+    char ip[32];
 }user_info_t;
 
 static user_info_t g_default_user_info = 
 {
     "root",
     "root",
+    "",
 };
 
-
+static List *g_pUserList;
 
 static user_info_t g_user_info;
 static cgi_status_t g_status;
 static bool g_certify_status;
 static bool cgi_srv_user_certify(user_info_t *pUserInfo);
+
+static bool cgi_add_new_user(user_info_t *pUserInfo)
+{
+    if(g_pUserList == NULL)
+    {
+        if((g_pUserList = List_Create(sizeof(user_info_t))) == NULL)
+        {
+            return false;
+        }
+        if(RET_FUNCTION_OK != List_Add(g_pUserList, pUserInfo))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool cgi_check_current_user(user_info_t *pUserInfo)
+{
+    int user_cnt, i;
+    user_info_t *pUser_tmp;
+    user_cnt = List_Count(g_pUserList);
+    if(user_cnt == 0)
+    {
+        return false;
+    }
+    for(i = 0; i < user_cnt; i++)
+    {
+        pUser_tmp = List_Find(g_pUserList, i);
+        if(pUser_tmp != NULL)
+        {
+            if(!memcmp(pUser_tmp->name, pUserInfo->name, 32) && !memcmp(pUser_tmp->password, pUserInfo->password, 32))
+            {
+                if(!memcmp(pUser_tmp->ip, pUserInfo->ip, 32))
+                {
+                    return true;
+                }
+                else
+                {
+                    return cgi_add_new_user(pUserInfo);
+                }
+            }
+        }
+    }
+    return true;
+}
+
 
 static bool cgi_srv_user_certify(user_info_t *pUserInfo)
 {
@@ -119,8 +170,9 @@ void cgi_server(void)
         {
             case MSG_TYPE_USER_CERTIFY:
                 tx_msg.type = MSG_TYPE_USER_CERTIFY; 
-                WEB_SRV_DEBUG("%s\n",((user_info_t*)rx_msg.data)->name);
-                WEB_SRV_DEBUG("%s\n",((user_info_t*)rx_msg.data)->password);
+                WEB_SRV_DEBUG("name:%s\n",((user_info_t*)rx_msg.data)->name);
+                WEB_SRV_DEBUG("password:%s\n",((user_info_t*)rx_msg.data)->password);
+                WEB_SRV_DEBUG("ip:%s\n",((user_info_t*)rx_msg.data)->ip);
                 tx_msg.data[0] = (char)cgi_srv_user_certify((user_info_t *)rx_msg.data);
                 g_certify_status = tx_msg.data[0];
                 WEB_SRV_DEBUG("verify result:%d\n",g_certify_status);
@@ -152,7 +204,7 @@ void cgi_server(void)
 }
 
 
-bool cgi_req_user_certified(char name[], char password[])
+bool cgi_req_user_certified(char name[], char password[], char ip[])
 {
     int tx_msg_id, rx_msg_id;
     msg_type_t tx_msg;
@@ -173,6 +225,7 @@ bool cgi_req_user_certified(char name[], char password[])
     tx_msg.type = MSG_TYPE_USER_CERTIFY;
     memcpy(((user_info_t *)tx_msg.data)->name, name, 32);
     memcpy(((user_info_t *)tx_msg.data)->password, password, 32);
+    memcpy(((user_info_t *)tx_msg.data)->ip, ip, 32);
     while(msgsnd(tx_msg_id, (const void *)&tx_msg, MSG_DATA_LEN, 0) == -1)
     {
         //msgctl(tx_msg_id, IPC_RMID, 0);

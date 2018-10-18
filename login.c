@@ -1,4 +1,3 @@
-
 #include <cgic.h>
 #include <string.h>
 #include <stdbool.h>
@@ -25,10 +24,11 @@ int cgiMain(void) {
         fprintf(cgiOut, "<script>window.history.back(-1)</script>");
         goto ext;
     }
-    if(cgi_req_user_certified(name, password))   
+
+    if(cgi_req_user_certified(name, password, cgiRemoteAddr))   
     {
+		//cgiHeaderCookieSetString(name, password, 86400, cgiScriptName, cgiServerName);
         fprintf(cgiOut, "<script>window.location.reload(\"/cgi-bin/index.cgi\")</script>");
-        //fprintf(cgiOut, "<meta http-equiv=\"refresh\" content=\"url=/cgi-bin/index.cgi\">");
     }
     else
     {
