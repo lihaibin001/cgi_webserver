@@ -10,18 +10,18 @@ CFLAGS = $(DEBUG) -Wall -c
 all:login logout  index cgiserver
 
 login:
-	$(CC) -o login.cgi login.c $(SRCS) $(LIB) $(INCLUDE) $(LIBS)
+	$(CC) -o output/login.cgi login.c $(SRCS) $(LIB) $(INCLUDE) $(LIBS)
 logout:
-	$(CC) -o logout.cgi logout.c $(SRCS) $(LIB) $(INCLUDE) $(LIBS)
+	$(CC) -o output/logout.cgi logout.c $(SRCS) $(LIB) $(INCLUDE) $(LIBS)
 index:
-	$(CC) -o index.cgi index.c $(SRCS) $(LIB) $(INCLUDE) $(LIBS)
+	$(CC) -o output/index.cgi index.c $(SRCS) $(LIB) $(INCLUDE) $(LIBS)
 cgiserver:
-	$(CC) -o cgiserver main.c $(SRCS)
+	$(CC) -o output/cgiserver main.c $(SRCS)
 
 .PHONY:clean
 clean:
-	rm -f *.cgi cgiserver
+	rm -f output/*.cgi output/cgiserver
 instal:
 	sudo rm  -f /var/www/cgi-bin/*
-	sudo cp *cgi /var/www/cgi-bin/
+	sudo cp output/*cgi /var/www/cgi-bin/
 
